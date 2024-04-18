@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Chat Client</title>
+</head>
+<body>
+<textarea id="messages" readonly></textarea>
+<input id="new-message" type="text">
+    <button id="send-button">Send</button>
+
+    <script>
+        // Define the room key
+        const roomKey = 'room1'; // replace with your room key
+
+        // Create a new WebSocket connection
+        const ws = new WebSocket(`ws://localhost:3000/${roomKey}/chat`);
+
+        const messages = document.getElementById('messages');
+        const newMessage = document.getElementById('new-message');
+        const sendButton = document.getElementById('send-button');
+
+        // Event handler for the open event
+        ws.onopen = () => {
+        console.log('WebSocket connection opened');
+    };
+
+        // Event handler for the message event
+        ws.onmessage = (event) => {
+        console.log('Received:', event.data);
+        messages.value += `\n${event.data}`;
+    };
+
+        // Event handler for the close event
+        ws.onclose = () => {
+        console.log('WebSocket connection closed');
+    };
+
+        // Event handler for the send button
+        sendButton.onclick = () => {
+        const message = newMessage.value;
+        if (message) {
+        ws.send(message);
+        newMessage.value = '';
+    }
+    };
+    </script>
+</body>
+</html>

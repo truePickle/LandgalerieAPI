@@ -1,11 +1,19 @@
 {
   "name": "livechatserver",
-  "module": "index.js",
+  "module": "server.js",
   "type": "module",
+  "scripts": {
+    "start": "bun --hot server.js",
+    "client": "bun client.html"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.16.0"
   }
 }
