@@ -1,7 +1,9 @@
 import express from "express";
 import { WebSocketServer } from "ws";
 import { Room } from "./src/Room.js";
+import { dataServer } from "./src/dataServer.js";
 
+const database = dataServer();
 const app = express();
 app.use(express.json());
 const port = process.env.PORT || 3000;
@@ -37,16 +39,30 @@ wss.on("connection", (ws, req) => {
         room.leave(ws);
     });
 });
-
-
+//API requests
 app.get("/", (req, res) => {
-    res.send("Hello World!");
+    const data = database.get_all_paintings();
+    res.send(data);
 });
 
 app.get("/:key", (req, res) => {
     const key = req.params.key;
-    console.log("Key:", key);
-    res.send("Your key is " + key);
+    const image = database.get_painting_image(key);
+    const description = database.get_painting_description(key);
+    res.send({
+        "description": description,
+        "image": image
+        });
+});
+
+app.get("/:key/image", (req, res) => {
+    const data = database.get_painting_image(req.params.key);
+    res.send(data);
+});
+
+app.get("/:key/description", (req, res) =>{
+    const data = database.get_painting_description(req.param.key);
+    res.send(data);
 });
 
 app.get("/:room/chat", (req, res) => {
@@ -54,6 +70,7 @@ app.get("/:room/chat", (req, res) => {
     console.log("New Socket connection");
     //upgrade http connection to a websocket connection
     wss.handleUpgrade(req, req.socket, Buffer.alloc(0), (ws) => {
+    });
 });
 
 app.listen(port, () => {
