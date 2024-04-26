@@ -1,9 +1,9 @@
-import { Room } from "/src/Room.js";
 import sql from "/src/database.js";
 
 export class dataServer {
     //getters
-    get_all_paintings(){
+    async get_all_paintings() {
+        // use to get pics and images simultanious await Promise.all([]);
         return sql`
             SELECT * FROM paintings`;
     }
@@ -19,14 +19,18 @@ export class dataServer {
     }
     //inserts
     insert_author(Name){
-        const authorExists = sql`SELECT * FROM author WHERE name = ${Name}`
-        if(authorExists.length === 0){
+        const authorExists = sql`SELECT * FROM author WHERE name = ${Name}`;
+        if(authorExists === null){
             sql`INSERT ${Name} INTO authors`
+            return true;
         }
+        throw new Error("Author already exists");
     }
     insert_description(Description){
         sql`INSERT ${Description} into descriptions`
     }
-    insert_painting(image){}
+    insert_image(Image){
+        sql`INSERT ${Image} into images`
+    }
 
 }
