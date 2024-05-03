@@ -1,45 +1,23 @@
 import express from "express";
-import { WebSocketServer } from "ws";
-import { Room } from "./src/Room.js";
+import { password } from "bun";
 import { dataServer } from "./src/dataServer.js";
 
-const database = dataServer();
+const database = new dataServer();
 const app = express();
 app.use(express.json());
 const port = process.env.PORT || 3000;
 
-// Create a WebSocket server
-const wss = new WebSocketServer({ noServer: true });
-
-// Map of room names to Room instances
-const rooms = new Map();
-
-wss.on("connection", (ws, req) => {
-    const roomName = req.url.substring(1); // Get the room name from the URL
-    let room = rooms.get(roomName);
-
-    // If the room doesn't exist, create it
-    if (!room) {
-        console.log(`Creating room: ${roomName}`);
-        room = new Room(roomName);
-        rooms.set(roomName, room);
+function hasProperties(obj, ...properties){
+    for(const property of properties){
+        if(!obj.hasOwnProperty(property)){
+            return false;
+        }
     }
+    return true;
+}
 
-    // Add the client to the room
-    room.join(ws);
-
-    ws.on("message", (message) => {
-        // When a message is received, send it to all clients in the room
-        console.log("Received:", message);
-        room.send(message);
-    });
-
-    ws.on("close", () => {
-        // When the client disconnects, remove them from the room
-        room.leave(ws);
-    });
-});
 //API requests
+//painting requests
 app.get("/", (req, res) => {
     const data = database.get_all_paintings();
     res.send(data);
@@ -61,15 +39,54 @@ app.get("/:key/image", (req, res) => {
 });
 
 app.get("/:key/description", (req, res) =>{
-    const data = database.get_painting_description(req.param.key);
+    const data = database.get_painting_description(req.params.key);
     res.send(data);
 });
+//user management
+app.put("/create/user", async (req, res) => {
+    const data = req.body;
 
-app.get("/:room/chat", (req, res) => {
-    // Upgrade the HTTP connection to a WebSocket connection
-    console.log("New Socket connection");
-    //upgrade http connection to a websocket connection
-    wss.handleUpgrade(req, req.socket, Buffer.alloc(0), (ws) => {
+    if (hasProperties(data, "surname", "lastname", "password", "role")) {
+        try {
+            const hash = await password.hash(data.password);
+
+            database.insert_author(data.surname, data.lastname, hash, data.role);
+        } catch (error) {
+            res.send({
+                "code": 500,
+                "message": error.message
+            });
+        }
+        res.send({
+            "code": 200,
+            "message": "User created"
+        });
+    }
+    res.send({
+        "code": 400,
+        "message": "Invalid Data needs to have surname, lastname, password, role"
+    });
+});
+//painting management
+app.put("/create/painting", (req, res) => {
+    const data = req.body;
+    if(hasProperties("description", "image", "author")){
+        try {
+            database.insert_image(data.description);
+        } catch (error) {
+            res.send({
+                "code": 500,
+                "message": error.message
+            });
+        }
+        res.send({
+            "code": 200,
+            "message": "Painting created"
+        });
+    }
+    res.send({
+        "code": 400,
+        "message":"Invalid Data needs to have description, image, author"
     });
 });
 
