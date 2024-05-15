@@ -43,14 +43,36 @@ app.get("/:key/description", (req, res) =>{
     res.send(data);
 });
 //user management
-app.put("/create/user", async (req, res) => {
-    const data = req.body;
-
-    if (hasProperties(data, "surname", "lastname", "password", "role")) {
+app.get("/login", (req, res) => {
+    const user = req.body;
+    if(hasProperties(user, "email", "password")){
         try {
-            const hash = await password.hash(data.password);
+            const authCookie = database.verify_password(user)
+            if(authCookie){
+                res.send({
+                    "code": 200,
+                    "cookie": authCookie,
+                    "message": "Logged in"
+                });
+            }
+        } catch (error) {
+            res.send({
+                "code": 500,
+                "message": error.message
+            });
+        }
+    }
+    res.send({
+        "code": 400,
+        "message": "Invalid request body needs to have email and password"
+    });
+});
+app.put("/create/user", async (req, res) => {
+    const user = req.body;
 
-            database.insert_author(data.surname, data.lastname, hash, data.role);
+    if (hasProperties(user, "firstrname", "lastname", "email", "password")) {
+        try {
+            await database.insert_user(user);
         } catch (error) {
             res.send({
                 "code": 500,
@@ -64,7 +86,7 @@ app.put("/create/user", async (req, res) => {
     }
     res.send({
         "code": 400,
-        "message": "Invalid Data needs to have surname, lastname, password, role"
+        "message": "Invalid request body needs to have surname, lastname, password, role"
     });
 });
 //painting management
@@ -86,7 +108,7 @@ app.put("/create/painting", (req, res) => {
     }
     res.send({
         "code": 400,
-        "message":"Invalid Data needs to have description, image, author"
+        "message":"Invalid request body needs to have description, image, author"
     });
 });
 
