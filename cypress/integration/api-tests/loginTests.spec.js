@@ -40,4 +40,19 @@ describe('Login Test', () => {
             expect(response.body).to.have.property('message');
             });
     });
+    //Login with wrong email
+    it('Login with wrong email', () => {
+        cy.request({
+            method: 'GET',
+            url: cypressConfig.e2e.baseUrl + '/login',
+            body: {
+                email: 'test@dings.de',
+                password: 'passwordWrong'
+            }}).then(response => {
+            expect(response.status).to.eq(500);
+            expect(response.body).to.have.property('message');
+            });
+    });
+
+
 });

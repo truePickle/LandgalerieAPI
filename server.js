@@ -1,11 +1,22 @@
 import express from "express";
-import { password } from "bun";
 import { dataServer } from "./src/dataServer.js";
 
 const database = new dataServer();
 const app = express();
 app.use(express.json());
 const port = process.env.PORT || 3000;
+
+const invalidRequestMessage = {
+    "code": 400,
+    "message": "Invalid request body needs to have email and password"
+};
+
+function interalErrorMessage(error) {
+    return {
+        "code": 500,
+        "message": error.message
+    };
+}
 
 function hasProperties(obj, ...properties){
     for(const property of properties){
@@ -18,29 +29,48 @@ function hasProperties(obj, ...properties){
 
 //API requests
 //painting requests
-app.get("/", (req, res) => {
+app.get("/paintings", (req, res) => {
     const data = database.get_all_paintings();
-    res.send(data);
+    const answer = {
+        "code": 200,
+        "paintings": data
+    }
+    res.send(answer);
 });
 
-app.get("/:key", (req, res) => {
-    const key = req.params.key;
-    const image = database.get_painting_image(key);
-    const description = database.get_painting_description(key);
+app.get("/paintings/:key", (req, res) => {
+    let image;
+    let description;
+    try {
+        const key = req.params.key;
+        image = database.get_painting_image(key);
+        description = database.get_painting_description(key);
+    } catch (error) {
+        res.send(interalErrorMessage(error));
+    }
     res.send({
+        "code": 200,
         "description": description,
         "image": image
         });
 });
 
-app.get("/:key/image", (req, res) => {
-    const data = database.get_painting_image(req.params.key);
-    res.send(data);
+app.get("/paintings/:key/image", (req, res) => {
+    const data = database.get_painting_images(req.params.key);
+    const anwser = {
+        "code": 200,
+        "image": data
+    }
+    res.send(anwser);
 });
 
-app.get("/:key/description", (req, res) =>{
+app.get("/paintings/:key/description", (req, res) =>{
     const data = database.get_painting_description(req.params.key);
-    res.send(data);
+    const anwser = {
+        "code": 200,
+        "description": data
+    }
+    res.send(anwser);
 });
 //user management
 app.get("/login", (req, res) => {
@@ -56,16 +86,10 @@ app.get("/login", (req, res) => {
                 });
             }
         } catch (error) {
-            res.send({
-                "code": 500,
-                "message": error.message
-            });
+            res.send(interalErrorMessage(error));
         }
     }
-    res.send({
-        "code": 400,
-        "message": "Invalid request body needs to have email and password"
-    });
+    res.send(invalidRequestMessage);
 });
 app.put("/create/user", async (req, res) => {
     const user = req.body;
@@ -74,42 +98,47 @@ app.put("/create/user", async (req, res) => {
         try {
             await database.insert_user(user);
         } catch (error) {
-            res.send({
-                "code": 500,
-                "message": error.message
-            });
+            res.send(interalErrorMessage(error));
         }
         res.send({
             "code": 200,
             "message": "User created"
         });
     }
-    res.send({
-        "code": 400,
-        "message": "Invalid request body needs to have surname, lastname, password, role"
-    });
+    res.send(invalidRequestMessage);
 });
 //painting management
 app.put("/create/painting", (req, res) => {
     const data = req.body;
-    if(hasProperties("description", "image", "author")){
+    if(hasProperties("description", "", "author")){
+        let id;
         try {
-            database.insert_image(data.description);
+            id = database.insert_painting(data);
         } catch (error) {
-            res.send({
-                "code": 500,
-                "message": error.message
-            });
+            res.send(interalErrorMessage(error));
         }
         res.send({
             "code": 200,
+            "id": id,
             "message": "Painting created"
         });
     }
-    res.send({
-        "code": 400,
-        "message":"Invalid request body needs to have description, image, author"
-    });
+    res.send(invalidRequestMessage);
+});
+//adding image
+app.put("/create/image", async (req, res) => {
+    const data = req.body;
+    if (hasProperties(data, "image", "paintingId")) {
+        const insertPromise = database.insert_image(data).catch(error => {
+            res.send(interalErrorMessage(error));
+        });
+        await insertPromise;
+        res.send({
+            "code": 200,
+            "message": "Image created"
+        });
+    }
+    res.send(invalidRequestMessage);
 });
 
 app.listen(port, () => {
