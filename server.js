@@ -29,12 +29,19 @@ function hasProperties(obj, ...properties){
 
 //API requests
 //painting requests
-app.get("/paintings", (req, res) => {
-    const data = database.get_all_paintings();
-    const answer = {
-        "code": 200,
-        "paintings": data
+app.get("/paintings", async (req, res) => {
+    let answer;
+    try{
+        const data = await database.get_all_paintings();
+        answer = {
+            "code": 200,
+            "paintings": data
+        }
+    } catch (error) {
+        res.send(interalErrorMessage(error));
     }
+
+
     res.send(answer);
 });
 
@@ -43,7 +50,7 @@ app.get("/paintings/:key", (req, res) => {
     let description;
     try {
         const key = req.params.key;
-        image = database.get_painting_image(key);
+        image = database.get_painting_images(key);
         description = database.get_painting_description(key);
     } catch (error) {
         res.send(interalErrorMessage(error));
@@ -94,23 +101,26 @@ app.get("/login", (req, res) => {
 app.put("/create/user", async (req, res) => {
     const user = req.body;
 
-    if (hasProperties(user, "firstrname", "lastname", "email", "password")) {
+    if (hasProperties(user, "firstrname", "lastname", "email", "password", "dings")) {
         try {
-            await database.insert_user(user);
+            const id = await database.insert_user(user);
+            res.send({
+                "code": 200,
+                "message": "User created",
+                "id": id
+            });
         } catch (error) {
             res.send(interalErrorMessage(error));
         }
-        res.send({
-            "code": 200,
-            "message": "User created"
-        });
     }
-    res.send(invalidRequestMessage);
+    else {
+        res.send(invalidRequestMessage);
+    }
 });
 //painting management
 app.put("/create/painting", (req, res) => {
     const data = req.body;
-    if(hasProperties("description", "", "author")){
+    if(hasProperties("description", "author")){
         let id;
         try {
             id = database.insert_painting(data);

@@ -52,20 +52,25 @@ export class dataServer {
      */
     async insert_user(Data) {
         const hashPassword = await bun.password.hash(Data.password, "argon2d");
-
+        let id;
         if (Data.hasOwnProperty("isAdmin") && Data.hasOwnProperty("isArtist")) {
-            sql`INSERT INTO users (vorname, nachname, email, password, isAdmin, isArtist) 
+            id = sql`INSERT INTO users (vorname, nachname, email, password, isAdmin, isArtist)
+            OUTPUT Inserted.ID
             VALUES (${Data.firstname}, ${Data.lastname}, ${Data.email}, ${hashPassword}, ${Data.isAdmin}, ${Data.isArtist})`
         } else if (Data.hasOwnProperty("isAdmin")) {
-            sql`INSERT INTO users (vorname, nachname, email, password, isAdmin) 
+            id = sql`INSERT INTO users (vorname, nachname, email, password, isAdmin) 
+            OUTPUT Inserted.ID
             VALUES (${Data.firstname}, ${Data.lastname}, ${Data.email}, ${hashPassword}, ${Data.isAdmin})`
         } else if (Data.hasOwnProperty("isArtist")) {
-            sql`INSERT INTO users (vorname, nachname, email, password, isArtist) 
+            id = sql`INSERT INTO users (vorname, nachname, email, password, isArtist) 
+            OUTPUT Inserted.ID
             VALUES (${Data.firstname}, ${Data.lastname}, ${Data.email}, ${hashPassword}, ${Data.isArtist})`
         } else {
-            sql`INSERT INTO users (vorname, nachname, email, password) 
+            id = sql`INSERT INTO users (vorname, nachname, email, password) 
+            OUTPUT Inserted.ID
             VALUES (${Data.firstname}, ${Data.lastname}, ${Data.email}, ${hashPassword})`
         }
+        return id;
     }
     /**
      *
@@ -79,21 +84,21 @@ export class dataServer {
         let id;
 
         if(Data.hasOwnProperty("description") && Data.hasOwnProperty("price")){
-            id = sql`INSERT INTO table paintings (artistID, description, price)
+            id = sql`INSERT INTO table paintings (description, price)
                 OUTPUT Inserted.ID
-                VALUES(${Data.artistID}, ${Data.description}, ${Data.price});`
+                VALUES(${Data.description}, ${Data.price});`
         } else if(Data.hasOwnProperty("description")) {
-            id = sql`INSERT INTO table paintings (artistID, description)
+            id = sql`INSERT INTO table paintings (description)
                 OUTPUT Inserted.ID
-                VALUES(${Data.artistID}, ${Data.description});`
+                VALUES(${Data.description});`
         }else if(Data.hasOwnProperty("price")) {
-            id = sql`INSERT INTO table paintings (artistID, price)
+            id = sql`INSERT INTO table paintings (price)
                 OUTPUT Inserted.ID
-                VALUES(${Data.artistID}, ${Data.price});`
+                VALUES(${Data.price});`
         }else{
-            id = sql`INSERT INTO table paintings (artistID)
+            id = sql`INSERT INTO table paintings
                 OUTPUT Inserted.ID
-                VALUES(${Data.artistID});`
+                VALUES();`
         }
 
         return id;

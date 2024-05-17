@@ -4,9 +4,9 @@ export default {
     "port": 3000
   },
   "db": {
-    "url": "https://db.noah.nat.selfnet.de",
-    "port": 80,
-    "database": "langalerie",
+    "url": "noah.nat.selfnet.de",
+    "port": 5432,
+    "database": "landgalerie",
     "username": "api",
     "password": "pineapple1924"
   }
