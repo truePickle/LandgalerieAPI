@@ -28,24 +28,16 @@ export class dataServer {
      * @param {number} id
      * @returns {string}
      */
-    async get_painting_image(id){
+    async get_painting_images(id){
         const imageID = sql`
             SELECT imageId From paintings WHERE id = ${id}`
-        const pathImage = sql`SELECT path FROM images WHERE id = ${imageID}`;
-        return this.#get_image(pathImage);
+        const images = [];
+        const imagePaths =await sql`SELECT path FROM images WHERE id = ${imageID}`;
+        for (const imagePath of imagePaths) {
+            images.append((await bun.file(imagePath).arrayBuffer()).toString());
+        }
+        return images;
     }
-
-    /**
-     *
-     * @param Data
-     * @param {number} Data.paintingId
-     * @param {string} Data.name
-     */
-    #get_image(Data){
-        let Filepath = path.basename(this.#basePathImage);
-        Filepath = path.join(Filepath, Data.paintingId.toString(), Data.name);
-        return ;
-    };
 
     //inserts
     /**
