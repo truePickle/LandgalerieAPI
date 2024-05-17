@@ -1,4 +1,4 @@
-import sql from "/src/database.js";
+import sql from "./database.js";
 import * as bun from "bun";
 import path from "path";
 import crypto from "crypto";

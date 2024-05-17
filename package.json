@@ -3,12 +3,12 @@
   "module": "server.js",
   "type": "module",
   "scripts": {
-    "start": "PORT=1234 bun --hot server.js",
-    "client": "bun client.html",
+    "start": "bun server.js",
     "cypress": "cypress open"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "cypress": "^13.9.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -16,7 +16,6 @@
   "dependencies": {
     "bun": "^1.1.7",
     "crypto": "^1.0.1",
-    "cypress": "^13.9.0",
     "express": "^4.19.2",
     "path": "^0.12.7",
     "postgres": "^3.4.4",
