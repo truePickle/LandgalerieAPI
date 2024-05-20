@@ -1,10 +1,11 @@
 export default {
   "api": {
     "url": "http://localhost:3000",
-    "port": 3000
+    "port": 3000,
+    "basePathImage": "./Data/images"
   },
   "db": {
-    "url": "noah.nat.selfnet.de",
+    "url": "100.90.4.113",
     "port": 5432,
     "database": "landgalerie",
     "username": "api",

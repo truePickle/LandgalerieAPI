@@ -2,13 +2,14 @@ import sql from "./database.js";
 import * as bun from "bun";
 import path from "path";
 import crypto from "crypto";
+import config from "../config.js";
 
 export class dataServer {
     //logged in user
     #users = null;
     #admins = null;
     #artists = null;
-    #basePathImage = "./Data/images";
+    #basePathImage = process.env.BASEPATHIMAGE || config.api.basePathImage || "/Data/images";
 
     //getters
     /**
@@ -29,10 +30,8 @@ export class dataServer {
      * @returns {string}
      */
     async get_painting_images(id){
-        const imageID = sql`
-            SELECT imageId From paintings WHERE id = ${id}`
         const images = [];
-        const imagePaths =await sql`SELECT path FROM images WHERE id = ${imageID}`;
+        const imagePaths =await sql`SELECT path FROM images WHERE painting_id = ${id}`;
         for (const imagePath of imagePaths) {
             images.append((await bun.file(imagePath).arrayBuffer()).toString());
         }

@@ -1,0 +1,21 @@
+name: landgalerieppi
+services:
+    api:
+        image : landgalerieapi
+        environment:
+          - PORT=3000
+          #Basepathimage needs to be the same as the volume target
+          - BASEPATHIMAGE='/DATA/images'
+          - DBHOST='100.90.4.113'
+          - DBNAME='landgalerie'
+          - DBPORT='5432'
+          - DBUSER='api'
+          - DBPWD='pineapple1924'
+        ports:
+          - 3000:3000
+        volumes:
+          - type: bind
+            source: /DATA/AppData/landgalerieApi/images
+            target: /DATA/images
+            bind:
+                create_host_path: true
